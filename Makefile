@@ -26,8 +26,8 @@ build_fe:
 	rm -rf templates/*; \
 	cd frontend/; \
 	npm run build; \
-	mv dist/index.html ../templates/index.html; \
 	mkdir -p ../templates/static/; \
+	mv dist/index.html ../templates/index.html; \
 	mv dist/* ../templates/static/; \
 	rm -rf dist; \
 	cd ..

@@ -1,12 +1,12 @@
 package router
 
 import (
-	"net/http"
 	"github.com/go-chi/chi"
-	"github.com/lnquy/fugu/modules/global"
-	"io/ioutil"
-	log"github.com/sirupsen/logrus"
 	"github.com/lnquy/fugu/languages"
+	"github.com/lnquy/fugu/modules/global"
+	log "github.com/sirupsen/logrus"
+	"io/ioutil"
+	"net/http"
 )
 
 func CalcSizeOfStruct(w http.ResponseWriter, r *http.Request) {
