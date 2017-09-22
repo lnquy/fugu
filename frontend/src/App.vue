@@ -1,34 +1,43 @@
 <template>
-  <div id="app">
-    <img src="./assets/logo.png">
-    <h1>{{ msg }}</h1>
-    <el-button @click.native="startHacking">Yes!</el-button>
-  </div>
+    <div id="app">
+        <el-menu theme="dark" :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
+            <el-menu-item index="1" disabled="true"><span style="font-family: 'Satisfy', cursive; font-size: 32px">Fugu</span></el-menu-item>
+            <el-submenu index="2">
+                <template slot="title">Languages</template>
+                <el-menu-item index="2-1">Go</el-menu-item>
+                <el-menu-item index="2-2">C/C++</el-menu-item>
+                <el-menu-item index="2-3">Java</el-menu-item>
+            </el-submenu>
+            <el-menu-item index="3">Architectures</el-menu-item>
+        </el-menu>
+    </div>
 </template>
 
 <script>
-export default {
-  data () {
-    return {
-      msg: 'Want something new?'
+    export default {
+        data() {
+            return {
+                activeIndex: '1',
+            }
+        },
+        methods: {
+            handleSelect(key, keyPath) {
+                console.log(key, keyPath);
+            }
+        }
     }
-  },
-
-  methods: {
-    startHacking () {
-      this.$notify({
-        title: 'Shhh',
-        message: 'Just be patient...',
-        duration: 6000
-      })
-    }
-  }
-}
 </script>
 
 <style>
-#app {
-  font-family: Helvetica, sans-serif;
-  text-align: center;
-}
+    body {
+        margin: 0;
+    }
+    #app {
+        font-family: Helvetica, sans-serif;
+        text-align: center;
+    }
+    .el-menu {
+        border-radius: 0;
+        text-align: left;
+    }
 </style>
