@@ -28,7 +28,7 @@ build_fe:
 	npm run build; \
 	mv dist/index.html ../templates/index.html; \
 	mkdir -p ../templates/static/; \
-	mv dist/static/* ../templates/static/; \
+	mv dist/* ../templates/static/; \
 	rm -rf dist; \
 	cd ..
 

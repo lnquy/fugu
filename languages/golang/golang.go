@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"encoding/json"
 )
 
 type Abc_Def struct {
@@ -31,13 +32,17 @@ func (g *Golang) CalculateSizeof(data string, arch global.Architecture) (string,
 		calcPadding(v, arch)
 	}
 
-	for k, v := range s {
-		fmt.Printf("%v\n", k)
-		for _, f := range v {
-			fmt.Printf("    %v\n", f)
-		}
+	//for k, v := range s {
+	//	fmt.Printf("%v\n", k)
+	//	for _, f := range v {
+	//		fmt.Printf("    %v\n", f)
+	//	}
+	//}
+	b, err := json.Marshal(s)
+	if err != nil {
+		return "", err
 	}
-	return "Go", nil
+	return string(b), nil
 }
 
 var (
