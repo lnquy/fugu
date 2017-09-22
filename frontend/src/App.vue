@@ -39,12 +39,14 @@
             <el-col v-if="res_table.length != 0" :span="12" class="fg-right-panel">
                 <div v-for="tbl in res_table">
                     <h3>{{ tbl.name }}</h3>
-                    <table class="fg-res-table" border :data="tbl.fields">
-                        <tr>
-                            <th>Field</th>
-                            <th>Size</th>
-                            <th>Memory alignment</th>
-                        </tr>
+                    <table class="fg-res-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Size</th>
+                                <th>Memory alignment</th>
+                            </tr>
+                        </thead>
                         <tr v-for="f in tbl.fields">
                             <td>{{ f.name }}</td>
                             <td>{{ f.size }}</td>
@@ -89,6 +91,7 @@
                     theme: 'material',
                     lineNumbers: true,
                     line: true,
+                    placeholder: 'type MyStruct struct {...}',
                     foldGutter: true,
                     gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
                     styleSelectedText: true,
@@ -143,6 +146,10 @@
     .el-menu {
         border-radius: 0;
     }
+
+    .cm-s-material {
+        border-radius: 4px;
+    }
 </style>
 
 <style scoped>
@@ -180,5 +187,42 @@
 
     .fg-padding-box {
         background-color: red;
+    }
+
+    .codemirror{
+        font-size: 14px;
+        line-height: 1.5em;
+    }
+
+    table {
+        max-width: 960px;
+        margin: 10px auto;
+        border-radius: 4px;
+    }
+
+    thead th {
+        font-weight: 400;
+        background: #8a97a0;
+        color: #FFF;
+    }
+
+    tr {
+        background: #f4f7f8;
+        border-bottom: 1px solid #FFF;
+        margin-bottom: 5px;
+    }
+
+    tr:nth-child(even) {
+        background: #e8eeef;
+    }
+
+    th, td {
+        text-align: left;
+        padding: 20px;
+        font-weight: 300;
+    }
+
+    td {
+        padding: 10px 20px;
     }
 </style>
