@@ -32,14 +32,9 @@
                         <el-button type="primary" @click="onSubmit">Go</el-button>
                     </el-form-item>
                 </el-form>
-                <el-input
-                        type="textarea"
-                        :rows="15"
-                        placeholder="type MyStruct struct {
-    a int
-}"
-                        v-model="ta_code">
-                </el-input>
+                <div class="codemirror">
+                    <codemirror v-model="ta_code" :options="editorOptions"></codemirror>
+                </div>
             </el-col>
             <el-col v-if="res_table.length != 0" :span="12" class="fg-right-panel">
                 <div v-for="tbl in res_table">
@@ -87,7 +82,18 @@
                     arch: 'amd64',
                 },
                 ta_code: '',
-                res_table: []
+                res_table: [],
+                editorOptions: {
+                    tabSize: 4,
+                    mode: 'text/x-go',
+                    theme: 'material',
+                    lineNumbers: true,
+                    line: true,
+                    foldGutter: true,
+                    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+                    styleSelectedText: true,
+                    highlightSelectionMatches: { showToken: /\w/, annotateScrollbar: true },
+                }
             }
         },
         methods: {

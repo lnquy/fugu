@@ -127,7 +127,7 @@ func calcPadding(s *base.Struct, arch global.Architecture) {
 			f.Index = 0
 		}
 		if i == len(s.Fields)-1 {
-			f.Padding = chunk - lastBits
+			f.Padding = chunk - lastBits -f.Index
 			continue
 		}
 		next := s.Fields[i+1]
