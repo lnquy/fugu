@@ -1,6 +1,6 @@
 <template>
-    <el-dialog :title="optmd_data.name" :visible.sync="optmd_show" size="tiny">
-        <textarea readonly>{{ optmd_data }}</textarea>
+    <el-dialog :title="optmd_data.name" :visible.sync="optmd_show">
+        <pre style>{{ optmd_data.info.text }}</pre>
         <span slot="footer" class="dialog-footer">
             <el-button type="primary" @click="optmd_show = false">Ok</el-button>
         </span>
