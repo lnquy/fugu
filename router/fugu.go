@@ -4,9 +4,10 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/lnquy/fugu/languages"
 	"github.com/lnquy/fugu/modules/global"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
+	"encoding/json"
+	"github.com/lnquy/fugu/languages/base"
 )
 
 func CalcSizeOfStruct(w http.ResponseWriter, r *http.Request) {
@@ -27,10 +28,45 @@ func CalcSizeOfStruct(w http.ResponseWriter, r *http.Request) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	log.Info(string(data))
 	ret, err := languages.CalcSizeOf(string(data), lang, arch)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("content-type", "application/json")
+	w.Write([]byte(ret))
+}
+
+func OptimizeStruct(w http.ResponseWriter, r *http.Request) {
+	var lang global.Language
+	parm := chi.URLParam(r, "lang")
+	if parm != "" {
+		lang = global.LanguageEnum(parm)
+	} else {
+		lang = global.Go
+	}
+
+	var arch global.Architecture
+	parm = chi.URLParam(r, "arch")
+	if parm != "" {
+		arch = global.ArchitectureEnum(parm)
+	}
+
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	s := &base.Struct{}
+	if err = json.Unmarshal(data, s); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	ret, err := languages.OptimizeMem(s, lang, arch)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

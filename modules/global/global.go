@@ -52,6 +52,17 @@ func LanguageEnum(in string) Language {
 	return UndefinedLanguage
 }
 
+func (a Architecture) GetChunkSize() uint8 {
+	switch a {
+	case I386:
+		return 4
+	case Amd64:
+		return 8
+	default:
+		return 0
+	}
+}
+
 func (a Architecture) String() string {
 	i := uint8(a)
 	switch {

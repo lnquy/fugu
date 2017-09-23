@@ -40,10 +40,23 @@
                 <el-col v-if="res_table.length != 0" :span="12" class="fg-right-panel">
                 <div v-for="tbl in res_table" :key="tbl.name">
                     <div style="padding: 16px 0;">
-                        <span style="font-size: 24px">{{ tbl.name }}</span>
+                        <span style="font-size: 24px">
+                            {{ tbl.name }}
+                            <span v-if="tbl.info.optimizable == false" style="color: green; font-size: 18px">
+                                <el-tooltip class="item" effect="dark" content="Struct memory is optimized" placement="top">
+                                    <i class="el-icon-circle-check"></i>
+                                </el-tooltip>
+                            </span>
+                            <span v-else style="color: red; font-size: 18px">
+                                <el-tooltip class="item" effect="dark" placement="top">
+                                    <div slot="content">Too much padding bytes.<br>Click to optimize this struct memory!</div>
+                                    <i class="el-icon-circle-cross ic-optimize" @click="optimizeStruct(tbl)"></i>
+                                </el-tooltip>
+                            </span>
+                        </span>
                         <span style="position: absolute; right: 30px; color: #aaa">
-                            <span style="font-size: 12px">Actual size: <span style="color: #4CAF50">{{ totalSizeString(tbl) }}</span></span>&nbsp; -&nbsp;
-                            <span style="font-size: 12px">Padding: <span style="color: #F44336">{{ totalPaddingString(tbl) }}</span></span>
+                            <span style="font-size: 12px">Actual size: <span style="color: #4CAF50">{{ tbl.info.total_size }}</span></span>&nbsp; -&nbsp;
+                            <span style="font-size: 12px">Padding: <span style="color: #F44336">{{ tbl.info.total_padding }}</span></span>
                         </span>
                     </div>
 
@@ -77,6 +90,8 @@
             </el-col>
             </transition>
         </el-row>
+
+        <optimize-dialog :optmd_show="optm_dialog.show" :optmd_data="optm_dialog.data"></optimize-dialog>
     </div>
 </template>
 
@@ -84,6 +99,7 @@
     import IndexBox from './components/IndexBox.vue';
     import SizeBox from './components/SizeBox.vue';
     import PaddingBox from './components/PaddingBox.vue';
+    import OptimizeDialog from './components/OptimizeDialog.vue';
 
     export default {
         data() {
@@ -106,6 +122,10 @@
                     gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
                     styleSelectedText: true,
                     highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true},
+                },
+                optm_dialog: {
+                    show: false,
+                    data: '',
                 }
             }
         },
@@ -113,6 +133,7 @@
             'index-box': IndexBox,
             'size-box': SizeBox,
             'padding-box': PaddingBox,
+            'optimize-dialog': OptimizeDialog,
         },
         methods: {
             handleSelect(key, keyPath) {
@@ -137,29 +158,14 @@
                     return 8
                 }
             },
-            totalSize(val) {
-                let total = 0;
-                for (let i = 0; i < val.fields.length; i++) {
-                    total += val.fields[i].size;
-                }
-                total += this.totalPadding(val);
-                return total
-            },
-            totalSizeString(val) {
-                let total = this.totalSize(val)
-                return total + (total <= 1 ? " byte" : " bytes");
-            },
-            totalPadding(val) {
-                let total = 0;
-                for (let i = 0; i < val.fields.length; i++) {
-                    total += val.fields[i].padding;
-                }
-                return total
-            },
-            totalPaddingString(val) {
-                let total = this.totalPadding(val)
-                return total + (total <= 1 ? " byte" : " bytes")
-            },
+            optimizeStruct(val) {
+                this.$http.post("api/v1/fugu/lang/" + this.fuguForm.language + "/arch/" + this.fuguForm.arch + "/optimize", val).then(resp => {
+                    this.optm_dialog.data = resp.body;
+                    this.optm_dialog.show = true;
+                }, err => {
+                    console.log(err)
+                });
+            }
         },
         watch: {
             'fuguForm.language': function () {
@@ -186,6 +192,7 @@
         min-height: 600px;
         border-radius: 4px;
     }
+
 </style>
 
 <style scoped>
@@ -197,6 +204,12 @@
     .codemirror {
         font-size: 14px;
         line-height: 1.5em;
+    }
+
+    .ic-optimize:hover,
+    .ic-optimize:focus,
+    .ic-optimize:active {
+        cursor: pointer;
     }
 
     /*** Table Styles **/

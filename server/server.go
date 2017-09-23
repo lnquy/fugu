@@ -64,6 +64,7 @@ func configureRouter(cfg *config.Config, r *chi.Mux) {
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Route("/fugu", func(r chi.Router) {
 			r.Post("/lang/{lang}/arch/{arch}", router.CalcSizeOfStruct)
+			r.Post("/lang/{lang}/arch/{arch}/optimize", router.OptimizeStruct)
 		})
 	})
 }

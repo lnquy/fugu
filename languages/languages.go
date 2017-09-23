@@ -7,10 +7,12 @@ import (
 	cpl "github.com/lnquy/fugu/languages/c_cpp"
 	gopl "github.com/lnquy/fugu/languages/golang"
 	javapl "github.com/lnquy/fugu/languages/java"
+	"github.com/lnquy/fugu/languages/base"
 )
 
 type ProgrammingLanguage interface {
 	CalculateSizeof(data string, arch global.Architecture) (string, error)
+	OptimizeMemoryAlignment(s *base.Struct, arch global.Architecture) (string, error)
 }
 
 var (
@@ -30,6 +32,14 @@ func CalcSizeOf(data string, lang global.Language, arch global.Architecture) (st
 		return "", fmt.Errorf("fugu: %s language is not supported yet", lang.String())
 	}
 	return pl.CalculateSizeof(data, arch)
+}
+
+func OptimizeMem(s *base.Struct, lang global.Language, arch global.Architecture) (string, error) {
+	pl, ok := pLangs[lang.String()]
+	if !ok {
+		return "", fmt.Errorf("fugu: %s language is not supported yet", lang.String())
+	}
+	return pl.OptimizeMemoryAlignment(s, arch)
 }
 
 func register(lang string) {
