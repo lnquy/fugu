@@ -15,9 +15,14 @@ type Golang struct{}
 
 var (
 	sNameRegex  = regexp.MustCompile(`\A\s*type\s+([a-zA-Z0-9_]*\s+)?struct\s*{\s*\z`)
-	sFieldRegex = regexp.MustCompile(`\A\s*([a-zA-Z_][a-zA-Z0-9_]*)\s+([a-zA-Z0-9_\[\]\{\}\<\-\>*]+(\s+[a-zA-Z0-9_\[\]\{\}\<\-\>*]+)?)\s*\z`)
+	sFieldRegex *regexp.Regexp
 	sEndRegex   = regexp.MustCompile(`\A\s*}\s*\z`)
 )
+
+func init() {
+	reg := fmt.Sprintf(`\A\s*([a-zA-Z_][a-zA-Z0-9_]*)\s+([a-zA-Z0-9_\[\]\{\}\<\-\>*]+(\s+[a-zA-Z0-9_\[\]\{\}\<\-\>*]+)?)\s*(%s.*)?\s*\z`, "`")
+	sFieldRegex = regexp.MustCompile(reg)
+}
 
 func (g *Golang) CalculateSizeof(data string, arch global.Architecture) (string, error) {
 	s := parseStructs(data)

@@ -38,8 +38,15 @@
             </el-col>
             <transition name="el-fade-in">
                 <el-col v-if="res_table.length != 0" :span="12" class="fg-right-panel">
-                <div v-for="tbl in res_table">
-                    <h3>{{ tbl.name }}</h3>
+                <div v-for="tbl in res_table" :key="tbl.name">
+                    <div style="padding: 16px 0;">
+                        <span style="font-size: 24px">{{ tbl.name }}</span>
+                        <span style="position: absolute; right: 30px; color: #aaa">
+                            <span style="font-size: 12px">Actual size: <span style="color: #4CAF50">{{ totalSizeString(tbl) }}</span></span>&nbsp; -&nbsp;
+                            <span style="font-size: 12px">Padding: <span style="color: #F44336">{{ totalPaddingString(tbl) }}</span></span>
+                        </span>
+                    </div>
+
                     <table class="fg-res-table">
                         <thead>
                         <tr>
@@ -48,21 +55,21 @@
                             <th>Memory alignment</th>
                         </tr>
                         </thead>
-                        <tr v-for="f in tbl.fields">
+                        <tr v-for="f in tbl.fields" :key="f.name">
                             <td class="text-center">{{ f.name }}</td>
                             <td class="text-center">{{ f.size }}</td>
                             <td style="display: flex; flex-wrap:wrap;">
-                                <index-box v-for="i in f.index"></index-box>
+                                <index-box v-for="i in f.index" :key="i"></index-box>
                                 <span v-if="f.size <= getChunkByte()">
-                                    <size-box v-for="i in f.size"></size-box>
+                                    <size-box v-for="i in f.size" :key="i"></size-box>
                                 </span>
                                 <span v-else>
-                                    <span v-for="i in f.size/getChunkByte()">
-                                        <size-box v-for="i in getChunkByte()"></size-box><br>
+                                    <span v-for="i in f.size/getChunkByte()" :key="i">
+                                        <size-box v-for="i in getChunkByte()" :key="i"></size-box><br>
                                     </span>
-                                    <size-box v-for="i in f.size%getChunkByte()"></size-box>
+                                    <size-box v-for="i in f.size%getChunkByte()" :key="i"></size-box>
                                 </span>
-                                <padding-box v-for="i in f.padding"></padding-box>
+                                <padding-box v-for="i in f.padding" :key="i"></padding-box>
                             </td>
                         </tr>
                     </table>
@@ -129,7 +136,30 @@
                 if (this.fuguForm.arch === "amd64") {
                     return 8
                 }
-            }
+            },
+            totalSize(val) {
+                let total = 0;
+                for (let i = 0; i < val.fields.length; i++) {
+                    total += val.fields[i].size;
+                }
+                total += this.totalPadding(val);
+                return total
+            },
+            totalSizeString(val) {
+                let total = this.totalSize(val)
+                return total + (total <= 1 ? " byte" : " bytes");
+            },
+            totalPadding(val) {
+                let total = 0;
+                for (let i = 0; i < val.fields.length; i++) {
+                    total += val.fields[i].padding;
+                }
+                return total
+            },
+            totalPaddingString(val) {
+                let total = this.totalPadding(val)
+                return total + (total <= 1 ? " byte" : " bytes")
+            },
         },
         watch: {
             'fuguForm.language': function () {
@@ -180,6 +210,7 @@
         box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
         animation: float 5s infinite;
         text-align: left;
+        margin-bottom: 20px;
     }
 
     th {
