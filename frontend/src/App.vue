@@ -2,7 +2,7 @@
     <div id="app">
         <el-menu theme="dark" :default-active="activeIndex" class="el-menu-demo" mode="horizontal"
                  @select="handleSelect">
-            <el-menu-item index="1"><span style="font-family: 'Satisfy', cursive; font-size: 32px">Fugu</span>
+            <el-menu-item index="1"><span style="font-family: 'Satisfy', cursive; font-size: 30px;">Fugu</span>
             </el-menu-item>
             <!--<el-submenu index="2">-->
             <!--<template slot="title">Languages</template>-->
@@ -36,14 +36,15 @@
                     <codemirror v-model="ta_code" :options="editorOptions"></codemirror>
                 </div>
             </el-col>
-            <el-col v-if="res_table.length != 0" :span="12" class="fg-right-panel">
+            <transition name="el-fade-in">
+                <el-col v-if="res_table.length != 0" :span="12" class="fg-right-panel">
                 <div v-for="tbl in res_table">
                     <h3>{{ tbl.name }}</h3>
                     <table class="fg-res-table">
                         <thead>
                         <tr>
                             <th class="text-center">Field</th>
-                            <th class="text-center">Size</th>
+                            <th class="text-center">Byte</th>
                             <th>Memory alignment</th>
                         </tr>
                         </thead>
@@ -51,29 +52,32 @@
                             <td class="text-center">{{ f.name }}</td>
                             <td class="text-center">{{ f.size }}</td>
                             <td style="display: flex; flex-wrap:wrap;">
-                                <div v-for="i in f.index" class="fg-box fg-index-box"></div>
+                                <index-box v-for="i in f.index"></index-box>
                                 <span v-if="f.size <= getChunkByte()">
-                                    <div v-for="i in f.size" class="fg-box fg-size-box"></div>
+                                    <size-box v-for="i in f.size"></size-box>
                                 </span>
                                 <span v-else>
                                     <span v-for="i in f.size/getChunkByte()">
-                                        <div v-for="i in getChunkByte()" class="fg-box fg-size-box"></div><br>
+                                        <size-box v-for="i in getChunkByte()"></size-box><br>
                                     </span>
-                                    <div v-for="i in f.size%getChunkByte()" class="fg-box fg-size-box"></div>
+                                    <size-box v-for="i in f.size%getChunkByte()"></size-box>
                                 </span>
-
-                                <!--<div v-for="i in f.size" class="fg-box fg-size-box"></div>-->
-                                <div v-for="i in f.padding" class="fg-box fg-padding-box"></div>
+                                <padding-box v-for="i in f.padding"></padding-box>
                             </td>
                         </tr>
                     </table>
                 </div>
             </el-col>
+            </transition>
         </el-row>
     </div>
 </template>
 
 <script>
+    import IndexBox from './components/IndexBox.vue';
+    import SizeBox from './components/SizeBox.vue';
+    import PaddingBox from './components/PaddingBox.vue';
+
     export default {
         data() {
             return {
@@ -97,6 +101,11 @@
                     highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true},
                 }
             }
+        },
+        components: {
+            'index-box': IndexBox,
+            'size-box': SizeBox,
+            'padding-box': PaddingBox,
         },
         methods: {
             handleSelect(key, keyPath) {
@@ -136,9 +145,6 @@
 <style>
     body {
         margin: 0;
-    }
-
-    #app {
         font-family: Helvetica, sans-serif;
     }
 
@@ -147,40 +153,15 @@
     }
 
     .cm-s-material {
+        min-height: 600px;
         border-radius: 4px;
     }
 </style>
 
 <style scoped>
-    .fg-left-panel {
-        padding: 20px;
-    }
-
+    .fg-left-panel,
     .fg-right-panel {
         padding: 20px;
-    }
-
-    .fg-form {
-    }
-
-    .fg-box {
-        width: 15px;
-        height: 15px;
-        margin: 5px;
-    }
-
-    .fg-index-box {
-        background-color: #BDBDBD;
-    }
-
-    .fg-size-box {
-        background-color: #4CAF50;
-        display: inline-flex;
-        flex-wrap: wrap;
-    }
-
-    .fg-padding-box {
-        background-color: #F44336;
     }
 
     .codemirror {
@@ -203,7 +184,7 @@
 
     th {
         color: #D5DDE5;;
-        background: #1b1e24;
+        background: #263238;
         /*border-bottom: 4px solid #9ea7af;*/
         border-right: 1px solid #343a45;
         font-size: 16px;
@@ -225,7 +206,7 @@
 
     tr {
         border-top: 1px solid #C1C3D1;
-        border-bottom-: 1px solid #C1C3D1;
+        border-bottom: 1px solid #C1C3D1;
         color: #666B85;
         font-size: 14px;
         font-weight: normal;
@@ -247,7 +228,7 @@
     }
 
     tr:nth-child(odd) td {
-        background: #EBEBEB;
+        background: #f6f6f6;
     }
 
     /*tr:nth-child(odd):hover td {*/
