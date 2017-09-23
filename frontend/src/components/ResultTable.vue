@@ -3,21 +3,31 @@
         <div style="padding: 16px 0;">
             <span style="font-size: 24px">
                 {{ tbl.name }}
-                <span v-if="tbl.info.optimizable == false" style="color: green; font-size: 18px">
+                <span v-if="tbl.info.optimizable == false" style="color: #4CAF50; font-size: 18px">
                     <el-tooltip class="item" effect="dark" content="Struct memory is optimized" placement="top">
                         <i class="el-icon-circle-check"></i>
                     </el-tooltip>
                 </span>
-                <span v-else style="color: red; font-size: 18px">
+                <span v-else style="color: #F44336; font-size: 18px">
                     <el-tooltip class="item" effect="dark" placement="top">
-                        <div slot="content">Too much padding bytes.<br>Click to optimize this struct memory!</div>
+                        <div slot="content">Too much padding bytes.<br>Click to optimize this struct's memory!</div>
                         <i class="el-icon-circle-cross ic-optimize" @click="optimizeStruct(tbl)"></i>
                     </el-tooltip>
                 </span>
             </span>
             <span style="position: absolute; right: 30px; color: #aaa">
-                <span style="font-size: 12px">Actual size: <span style="color: #4CAF50">{{ tbl.info.total_size }}</span></span>&nbsp; -&nbsp;
-                <span style="font-size: 12px">Padding: <span style="color: #F44336">{{ tbl.info.total_padding }}</span></span>
+                <el-tooltip class="item" effect="dark" placement="top">
+                    <div slot="content">The actual allocated bytes on memory.<br>Actual size = Struct + Padding</div>
+                    <span style="font-size: 12px">Actual: <span style="color: #2196F3">{{ tbl.info.total_size }}</span></span>
+                </el-tooltip>&nbsp; -&nbsp;
+                <el-tooltip class="item" effect="dark" placement="top">
+                    <div slot="content">Memory size used by struct (in theory)</div>
+                    <span style="font-size: 12px">Struct: <span style="color: #4CAF50">{{ tbl.info.total_size - tbl.info.total_padding }}</span></span>
+                </el-tooltip>&nbsp; -&nbsp;
+                <el-tooltip class="item" effect="dark" placement="top">
+                    <div slot="content">Padding bytes for aligned struct fields</div>
+                    <span style="font-size: 12px">Padding: <span style="color: #F44336">{{ tbl.info.total_padding }}</span></span>
+                </el-tooltip>
             </span>
         </div>
 
@@ -54,30 +64,42 @@
     import IndexBox from './IndexBox.vue';
     import SizeBox from './SizeBox.vue';
     import PaddingBox from './PaddingBox.vue';
+    import {mapGetters} from "vuex";
+    import {mapMutations} from "vuex";
 
     export default {
         data() {
             return {}
         },
-        props: ["tbl", "fuguForm"],
+        props: ["tbl"],
         components: {
             'index-box': IndexBox,
             'size-box': SizeBox,
             'padding-box': PaddingBox,
         },
+        computed: {
+            ...mapGetters([
+                'lang',
+                'arch',
+            ])
+        },
         methods: {
+            ...mapMutations([
+                'setOptmdShow',
+                'setOptmdData',
+            ]),
             getChunkByte() {
-                if (this.fuguForm.arch === "i386") {
+                if (this.arch === "i386") {
                     return 4
                 }
-                if (this.fuguForm.arch === "amd64") {
+                if (this.arch === "amd64") {
                     return 8
                 }
             },
             optimizeStruct(val) {
-                this.$http.post("api/v1/fugu/lang/" + this.fuguForm.language + "/arch/" + this.fuguForm.arch + "/optimize", val).then(resp => {
-                    //this.optm_dialog.data = resp.body;
-                    //this.optm_dialog.show = true;
+                this.$http.post("api/v1/fugu/lang/" + this.lang + "/arch/" + this.arch + "/optimize", val).then(resp => {
+                    this.setOptmdData(resp.body);
+                    this.setOptmdShow(true);
                 }, err => {
                     console.log(err)
                 });

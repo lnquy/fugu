@@ -39,19 +39,20 @@
             <transition name="el-fade-in">
                 <el-col v-if="res_table.length != 0" :span="12" class="fg-right-panel">
                 <div v-for="tbl in res_table" :key="tbl.name">
-                    <result-table :tbl="tbl" :fuguForm="fuguForm"></result-table>
+                    <result-table :tbl="tbl"></result-table>
                 </div>
             </el-col>
             </transition>
         </el-row>
 
-        <!--<optimize-dialog :optmd_show="optm_dialog.show" :optmd_data="optm_dialog.data"></optimize-dialog>-->
+        <optimize-dialog></optimize-dialog>
     </div>
 </template>
 
 <script>
     import OptimizeDialog from './components/OptimizeDialog.vue';
     import ResultTable from './components/ResultTable.vue';
+    import {mapMutations} from 'vuex';
 
     export default {
         data() {
@@ -75,10 +76,6 @@
                     styleSelectedText: true,
                     highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true},
                 },
-                optm_dialog: {
-                    show: false,
-                    data: '',
-                }
             }
         },
         components: {
@@ -86,6 +83,10 @@
             'optimize-dialog': OptimizeDialog,
         },
         methods: {
+            ...mapMutations([
+                'setLang',
+                'setArch',
+            ]),
             handleSelect(key, keyPath) {
                 console.log(key, keyPath);
             },
@@ -103,10 +104,12 @@
         },
         watch: {
             'fuguForm.language': function () {
-                this.res_table = []
+                this.setLang(this.fuguForm.language);
+                this.res_table = [];
             },
             'fuguForm.arch': function () {
-                this.res_table = []
+                this.setArch(this.fuguForm.arch);
+                this.res_table = [];
             },
         }
     }
