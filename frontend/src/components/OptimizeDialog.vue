@@ -43,7 +43,7 @@
             ]),
             handleClose() {
                 this.setOptmdShow(false);
-                this.setOptmdData(tmp);
+                this.setOptmdData(this.tmp);
             }
         },
         filters: {

@@ -5,28 +5,33 @@ import (
 	"fmt"
 	"github.com/lnquy/fugu/languages/base"
 	"github.com/lnquy/fugu/modules/global"
+	"go/ast"
+	"go/token"
+	"sort"
+	"strings"
+	"go/parser"
 	"github.com/lnquy/fugu/modules/util"
 	"regexp"
-	"strings"
-	"time"
-	"sort"
 )
-
-type Golang struct{}
 
 var (
-	sNameRegex  = regexp.MustCompile(`\A\s*type\s+([a-zA-Z0-9_]*\s+)?struct\s*{\s*\z`)
-	sFieldRegex *regexp.Regexp
-	sEndRegex   = regexp.MustCompile(`\A\s*}\s*\z`)
+	pkgRegex = regexp.MustCompile(`\A\s*package\s*([a-zA-Z0-9_]+)\s*\z`)
 )
 
-func init() {
-	reg := fmt.Sprintf(`\A\s*([a-zA-Z_][a-zA-Z0-9_]*)\s+([a-zA-Z0-9_\[\]\{\}\<\-\>*]+(\s+[a-zA-Z0-9_\[\]\{\}\<\-\>*]+)?)\s*(%s.*)?\s*\z`, "`")
-	sFieldRegex = regexp.MustCompile(reg)
-}
+type (
+	Golang struct{}
+
+	StructVisitor struct {
+		src     string
+		structs []*base.Struct
+	}
+)
 
 func (g *Golang) CalculateSizeof(data string, arch global.Architecture) (string, error) {
-	s := parseStructs(data)
+	s, err := parseStructs(data)
+	if err != nil {
+		return "", err
+	}
 	for _, v := range s {
 		calcFieldSizes(v, arch)
 		calcPadding(v, arch)
@@ -48,7 +53,7 @@ func (g *Golang) OptimizeMemoryAlignment(s *base.Struct, arch global.Architectur
 	optm := make([]*base.Field, 0)
 
 	for _, f := range s.Fields {
-		if f.Size % chunk == 0 && f.Size >= chunk {
+		if f.Size%chunk == 0 && f.Size >= chunk {
 			os.Fields = append(os.Fields, f)
 			continue
 		}
@@ -69,37 +74,67 @@ func (g *Golang) OptimizeMemoryAlignment(s *base.Struct, arch global.Architectur
 	return string(b), nil
 }
 
-func parseStructs(data string) []*base.Struct {
-	retStructs := make([]*base.Struct, 0)
-	s := &base.Struct{}
+func (sv *StructVisitor) Visit(node ast.Node) ast.Visitor {
+	switch t := node.(type) {
+	case *ast.GenDecl:
+		if t.Tok == token.TYPE { // Type declaration statement
+			for _, spec := range t.Specs { // Items inside type
+				tSpec := spec.(*ast.TypeSpec)
+				sType, ok := tSpec.Type.(*ast.StructType) // Struct type
+				if !ok {
+					break
+				}
+				s := &base.Struct{ // Parse new struct
+					Name:   tSpec.Name.Name,
+					Fields: make([]*base.Field, 0),
+					Info: base.Info{
+						Text: fmt.Sprintf("type %s %s", tSpec.Name.Name, sv.src[sType.Pos()-1:sType.End()-1]),
+					},
+				}
 
-	lines := strings.Split(data, util.LineBreak())
-	for _, line := range lines {
-		if sNameRegex.MatchString(line) {
-			s.Text = line + "\n"
-			s.Name = strings.TrimSpace(sNameRegex.FindStringSubmatch(line)[1])
-			if s.Name == "" {
-				s.Name = fmt.Sprintf("%v", time.Now().Unix())
+				for _, f := range sType.Fields.List { // Struct fields
+					bf := &base.Field{}
+					for _, name := range f.Names { // Field name
+						bf.Name += name.Name + " "
+					}
+					bf.Name = strings.TrimSpace(bf.Name)
+					bf.Type = strings.TrimSpace(sv.src[f.Type.Pos()-1 : f.Type.End()-1]) // Field type
+					s.Fields = append(s.Fields, bf)
+				}
+
+				sv.structs = append(sv.structs, s)
 			}
-			s.Fields = make([]*base.Field, 0)
-			continue
-		}
-		if sEndRegex.MatchString(line) {
-			s.Text += "}"
-			retStructs = append(retStructs, s)
-			s = &base.Struct{}
-			continue
-		}
-		if sFieldRegex.MatchString(line) {
-			s.Text += line + "\n"
-			m := sFieldRegex.FindStringSubmatch(line)
-			s.Fields = append(s.Fields, &base.Field{
-				Name: m[1],
-				Type: m[2],
-			})
 		}
 	}
-	return retStructs
+	return sv
+}
+
+func parseStructs(data string) ([]*base.Struct, error) {
+	if !isContainPackageStmt(data) {
+		data = fmt.Sprintf("package fugu\n%s", data)
+	}
+
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, "", data, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	s := &StructVisitor{
+		src: data,
+	}
+	ast.Walk(s, f)
+	return s.structs, nil
+}
+
+func isContainPackageStmt(data string) bool {
+	lines := strings.Split(data, util.LineBreak())
+	for _, line := range lines {
+		if pkgRegex.MatchString(line) {
+			return true
+		}
+	}
+	return false
 }
 
 func calcFieldSizes(s *base.Struct, arch global.Architecture) {
@@ -163,7 +198,7 @@ func calcPadding(s *base.Struct, arch global.Architecture) {
 			f.Index = 0
 		}
 		if i == len(s.Fields)-1 {
-			f.Padding = chunk - lastBits -f.Index
+			f.Padding = chunk - lastBits - f.Index
 			continue
 		}
 		next := s.Fields[i+1]

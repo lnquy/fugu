@@ -92,7 +92,7 @@
             },
             onSubmit() {
                 this.$http.post("api/v1/fugu/lang/" + this.fuguForm.language + "/arch/" + this.fuguForm.arch, this.ta_code).then(resp => {
-                    if (resp.body[0] !== undefined) {
+                    if (resp.body != null && resp.body[0] !== undefined) {
                         this.res_table = resp.body;
                     } else {
                         this.res_table = []
