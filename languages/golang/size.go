@@ -53,6 +53,12 @@ func getTypeSize(t string, arch global.Architecture) uint {
 		}
 	}
 
+	if strings.HasPrefix(t, "size_") { // Custom size. E.g: size_23 -> 23 bytes
+		if size, err := strconv.Atoi(t[5:]); err == nil {
+			return uint(size)
+		}
+		return 0
+	}
 	if t == "struct{}" || strings.HasPrefix(t, "[0]") { // TODO: Special cases for nested struct
 		return 0
 	}

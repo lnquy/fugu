@@ -39,6 +39,12 @@ func (g *Golang) OptimizeMemoryAlignment(s *base.Struct, arch global.Architectur
 			os.Fields = append(os.Fields, f)
 			continue
 		}
+
+		f.Index = 0
+		f.Padding = chunk - f.Size%chunk
+		if f.Size == 0 {
+			f.Padding = 0
+		}
 		optm = append(optm, f)
 	}
 

@@ -54,6 +54,12 @@
     }
 </script>
 
+<style>
+    .el-dialog__body {
+        padding: 20px 20px 0 20px;
+    }
+</style>
+
 <style scoped>
     .fg-pre {
         padding-bottom: 10px;
@@ -64,4 +70,5 @@
         height: 1px;
         background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
     }
+
 </style>
