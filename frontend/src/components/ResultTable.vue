@@ -116,7 +116,6 @@
                         message: "Failed to optimize struct:\n" + err.bodyText,
                         duration: 0
                     });
-                    console.log(err); // TODO
                 });
             },
             omittedBytes(val) {

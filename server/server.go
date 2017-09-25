@@ -24,9 +24,12 @@ func Serve(cfg *config.Config) {
 	addr := cfg.Server.GetFullAddr()
 	srv := &http.Server{
 		Addr:         addr,
-		Handler:      cors.Default().Handler(r), // TODO: Dev only
+		Handler:      r,
 		ReadTimeout:  cfg.Server.RTimeout,
 		WriteTimeout: cfg.Server.WTimeout,
+	}
+	if cfg.Runtime.IsDebugging { // Only allow CORS in development mode
+		srv.Handler = cors.Default().Handler(r)
 	}
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT, os.Interrupt, os.Kill)

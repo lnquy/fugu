@@ -103,7 +103,6 @@
                         message: "Failed to calculate struct memory:\n" + err.bodyText,
                         duration: 0
                     });
-                    console.log(err) // TODO
                 });
             },
         },

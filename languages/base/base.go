@@ -15,15 +15,15 @@ type (
 	Field struct {
 		Name    string `json:"name"`
 		Type    string `json:"type"`
-		Size    uint `json:"size"`
-		Index   uint  `json:"index"`
-		Padding uint  `json:"padding"`
+		Size    uint   `json:"size"`
+		Index   uint   `json:"index"`
+		Padding uint   `json:"padding"`
 	}
 
 	Info struct {
 		Text         string `json:"text"`
-		TotalPadding uint `json:"total_padding"`
-		TotalSize    uint `json:"total_size"`
+		TotalPadding uint   `json:"total_padding"`
+		TotalSize    uint   `json:"total_size"`
 		Optimizable  bool   `json:"optimizable"`
 	}
 )

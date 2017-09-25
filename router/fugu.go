@@ -11,23 +11,9 @@ import (
 )
 
 func CalcSizeOfStruct(w http.ResponseWriter, r *http.Request) {
-	var lang global.Language
-	parm := chi.URLParam(r, "lang")
-	if parm != "" {
-		lang = global.LanguageEnum(parm)
-	} else {
-		lang = global.Go
-	}
-
-	var arch global.Architecture
-	parm = chi.URLParam(r, "arch")
-	if parm != "" {
-		arch = global.ArchitectureEnum(parm)
-	}
-
-	data, err := ioutil.ReadAll(r.Body)
+	lang, arch, data, err := getParams(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -41,6 +27,27 @@ func CalcSizeOfStruct(w http.ResponseWriter, r *http.Request) {
 }
 
 func OptimizeStruct(w http.ResponseWriter, r *http.Request) {
+	lang, arch, data, err := getParams(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	s := &base.Struct{}
+	if err = json.Unmarshal(data, s); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	ret, err := languages.OptimizeMem(s, lang, arch)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("content-type", "application/json")
+	w.Write([]byte(ret))
+}
+
+func getParams(r *http.Request) (global.Language, global.Architecture, []byte, error) {
 	var lang global.Language
 	parm := chi.URLParam(r, "lang")
 	if parm != "" {
@@ -53,24 +60,13 @@ func OptimizeStruct(w http.ResponseWriter, r *http.Request) {
 	parm = chi.URLParam(r, "arch")
 	if parm != "" {
 		arch = global.ArchitectureEnum(parm)
+	} else {
+		arch = global.Amd64
 	}
 
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return 0, 0, nil, err
 	}
-	s := &base.Struct{}
-	if err = json.Unmarshal(data, s); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	ret, err := languages.OptimizeMem(s, lang, arch)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("content-type", "application/json")
-	w.Write([]byte(ret))
+	return lang, arch, data, nil
 }
