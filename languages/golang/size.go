@@ -2,9 +2,9 @@ package golang
 
 import (
 	"github.com/lnquy/fugu/modules/global"
-	"strings"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -71,7 +71,7 @@ func getTypeSize(t string, arch global.Architecture) uint {
 	if arrayRegex.MatchString(t) { // Array: Sizeof([N]Type) = N * Sizeof(Type)
 		lb := strings.Index(t, "[")
 		rb := strings.Index(t, "]")
-		i, err := strconv.Atoi(t[lb+1:rb])
+		i, err := strconv.Atoi(t[lb+1 : rb])
 		if err != nil {
 			return 0
 		}

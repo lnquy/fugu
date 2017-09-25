@@ -4,9 +4,10 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
-	"io/ioutil"
+	"regexp"
 )
 
 func GetWd() string {
@@ -73,4 +74,13 @@ func IsDirEmpty(path string) bool {
 		return true
 	}
 	return false
+}
+
+func GetStaticLinks(data []byte, rgx string) []string {
+	var r *regexp.Regexp
+	var err error
+	if r, err = regexp.Compile(rgx); err != nil {
+		return []string{}
+	}
+	return r.FindAllString(string(data), -1)
 }

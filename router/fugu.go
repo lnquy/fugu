@@ -1,16 +1,16 @@
 package router
 
 import (
+	"encoding/json"
 	"github.com/go-chi/chi"
 	"github.com/lnquy/fugu/languages"
+	"github.com/lnquy/fugu/languages/base"
 	"github.com/lnquy/fugu/modules/global"
 	"io/ioutil"
 	"net/http"
-	"encoding/json"
-	"github.com/lnquy/fugu/languages/base"
 )
 
-func CalcSizeOfStruct(w http.ResponseWriter, r *http.Request) {
+func CalcStructSizeOf(w http.ResponseWriter, r *http.Request) {
 	lang, arch, data, err := getParams(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -26,7 +26,7 @@ func CalcSizeOfStruct(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(ret))
 }
 
-func OptimizeStruct(w http.ResponseWriter, r *http.Request) {
+func OptimizeStructMem(w http.ResponseWriter, r *http.Request) {
 	lang, arch, data, err := getParams(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

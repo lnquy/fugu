@@ -8,8 +8,7 @@ import (
 
 func main() {
 	cfg := config.LoadEnvConfig()
-
-	lvl, _ := log.ParseLevel(cfg.Runtime.LogLevel)
+	lvl, _ := log.ParseLevel(cfg.Runtime.LogLevel) // Default debug
 	log.SetLevel(lvl)
 
 	server.Serve(cfg)

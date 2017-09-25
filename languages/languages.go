@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/lnquy/fugu/modules/global"
 
+	"github.com/lnquy/fugu/languages/base"
 	cpl "github.com/lnquy/fugu/languages/c_cpp"
 	gopl "github.com/lnquy/fugu/languages/golang"
 	javapl "github.com/lnquy/fugu/languages/java"
-	"github.com/lnquy/fugu/languages/base"
 )
 
 type ProgrammingLanguage interface {
