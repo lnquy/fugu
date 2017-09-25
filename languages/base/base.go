@@ -1,8 +1,8 @@
 package base
 
 import (
-	"github.com/lnquy/fugu/modules/global"
 	"fmt"
+	"github.com/lnquy/fugu/modules/global"
 )
 
 type (
@@ -15,15 +15,15 @@ type (
 	Field struct {
 		Name    string `json:"name"`
 		Type    string `json:"type"`
-		Size    uint8  `json:"size"`
-		Index   uint8  `json:"index"`
-		Padding uint8  `json:"padding"`
+		Size    uint `json:"size"`
+		Index   uint  `json:"index"`
+		Padding uint  `json:"padding"`
 	}
 
 	Info struct {
 		Text         string `json:"text"`
-		TotalPadding uint16 `json:"total_padding"`
-		TotalSize    uint16 `json:"total_size"`
+		TotalPadding uint `json:"total_padding"`
+		TotalSize    uint `json:"total_size"`
 		Optimizable  bool   `json:"optimizable"`
 	}
 )
@@ -31,18 +31,18 @@ type (
 func (s *Struct) CalcInfoTotals() {
 	s.TotalPadding = 0
 	for _, v := range s.Fields {
-		s.TotalPadding += uint16(v.Padding)
+		s.TotalPadding += v.Padding
 	}
 	s.TotalSize = s.TotalPadding
 	for _, v := range s.Fields {
-		s.TotalSize += uint16(v.Size)
+		s.TotalSize += v.Size
 	}
 }
 
 func (s *Struct) CalcOptimizable(arch global.Architecture) {
 	s.CalcInfoTotals()
 
-	if s.TotalPadding >= uint16(arch.GetChunkSize()) {
+	if s.TotalPadding >= arch.GetChunkSize() {
 		s.Optimizable = true
 		return
 	}
@@ -58,6 +58,7 @@ func (s *Struct) BuildText() {
 }
 
 type BySize []*Field
+
 func (a BySize) Len() int           { return len(a) }
 func (a BySize) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a BySize) Less(i, j int) bool { return a[i].Size > a[j].Size }

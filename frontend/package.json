@@ -7,10 +7,10 @@
     "build": "rimraf dist && webpack -p --progress --hide-modules"
   },
   "dependencies": {
-    "element-ui": "^1.4.2",
-    "vue": "^2.4.2",
-    "vue-codemirror": "^3.1.4",
-    "vue-resource": "^1.3.1",
+    "element-ui": "^1.4.5",
+    "vue": "^2.4.4",
+    "vue-codemirror": "^3.1.6",
+    "vue-resource": "^1.3.4",
     "vuex": "^2.4.0"
   },
   "engines": {
@@ -18,19 +18,19 @@
   },
   "devDependencies": {
     "autoprefixer": "^6.6.0",
-    "babel-core": "^6.24.1",
+    "babel-core": "^6.26.0",
     "babel-loader": "^6.4.0",
-    "babel-preset-vue-app": "^1.2.0",
+    "babel-preset-vue-app": "^1.3.1",
     "css-loader": "^0.27.0",
     "file-loader": "^0.10.1",
-    "html-webpack-plugin": "^2.24.1",
+    "html-webpack-plugin": "^2.30.1",
     "postcss-loader": "^1.3.3",
-    "rimraf": "^2.5.4",
+    "rimraf": "^2.6.2",
     "style-loader": "^0.13.2",
-    "url-loader": "^0.5.8",
-    "vue-loader": "^13.0.4",
-    "vue-template-compiler": "^2.4.2",
-    "webpack": "^2.4.1",
-    "webpack-dev-server": "^2.4.2"
+    "url-loader": "^0.5.9",
+    "vue-loader": "^13.0.5",
+    "vue-template-compiler": "^2.4.4",
+    "webpack": "^2.7.0",
+    "webpack-dev-server": "^2.8.2"
   }
 }

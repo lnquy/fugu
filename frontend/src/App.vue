@@ -98,7 +98,12 @@
                         this.res_table = []
                     }
                 }, err => {
-                    console.log(err)
+                    this.$notify.error({
+                        title: 'Error',
+                        message: "Failed to calculate struct memory:\n" + err.bodyText,
+                        duration: 0
+                    });
+                    console.log(err) // TODO
                 });
             },
         },
@@ -130,6 +135,10 @@
         border-radius: 4px;
     }
 
+    span, div {
+        margin: 0;
+        padding: 0;
+    }
 </style>
 
 <style scoped>

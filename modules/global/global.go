@@ -52,7 +52,7 @@ func LanguageEnum(in string) Language {
 	return UndefinedLanguage
 }
 
-func (a Architecture) GetChunkSize() uint8 {
+func (a Architecture) GetChunkSize() uint {
 	switch a {
 	case I386:
 		return 4

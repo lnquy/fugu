@@ -22,5 +22,7 @@
 
     .fg-padding-box {
         background-color: #F44336;
+        display: inline-flex;
+        flex-wrap: wrap;
     }
 </style>

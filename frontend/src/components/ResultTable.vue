@@ -35,25 +35,35 @@
             <thead>
             <tr>
                 <th class="text-center">Field</th>
+                <th class="text-center">Type</th>
                 <th class="text-center">Byte</th>
                 <th>Memory alignment</th>
             </tr>
             </thead>
             <tr v-for="f in tbl.fields" :key="f.name">
                 <td class="text-center">{{ f.name }}</td>
+                <td class="text-center">{{ f.type }}</td>
                 <td class="text-center">{{ f.size }}</td>
                 <td style="display: flex; flex-wrap:wrap;">
                     <index-box v-for="i in f.index" :key="i"></index-box>
                     <span v-if="f.size <= getChunkByte()">
-                        <size-box v-for="i in f.size" :key="i"></size-box>
+                        <size-box v-for="i in f.size" :key="i"></size-box><padding-box v-for="i in f.padding" :key="i"></padding-box>
                     </span>
                     <span v-else>
-                        <span v-for="i in f.size/getChunkByte()" :key="i">
-                            <size-box v-for="i in getChunkByte()" :key="i"></size-box><br>
+                        <span v-if="f.size> getChunkByte()*8">
+                            <span style="font-size: 12px; padding-left: 5px;">First {{ omittedBytes(f.size) }} bytes omitted...<br></span>
+                            <span v-for="i in 8" :key="i">
+                                <size-box v-for="i in getChunkByte()" :key="i"></size-box><br/>
+                            </span>
+                            <size-box v-for="i in f.size%getChunkByte()" :key="i"></size-box><padding-box v-for="i in f.padding" :key="i"></padding-box>
                         </span>
-                        <size-box v-for="i in f.size%getChunkByte()" :key="i"></size-box>
+                        <span v-else>
+                            <span v-for="i in f.size/getChunkByte() >> 0" :key="i">
+                                <size-box v-for="j in getChunkByte()" :key="j"></size-box><br/>
+                            </span>
+                            <size-box v-for="i in f.size%getChunkByte()" :key="i"></size-box><padding-box v-for="i in f.padding" :key="i"></padding-box>
+                        </span>
                     </span>
-                    <padding-box v-for="i in f.padding" :key="i"></padding-box>
                 </td>
             </tr>
         </table>
@@ -101,10 +111,19 @@
                     this.setOptmdData(resp.body);
                     this.setOptmdShow(true);
                 }, err => {
-                    console.log(err)
+                    this.$notify.error({
+                        title: 'Error',
+                        message: "Failed to optimize struct:\n" + err.bodyText,
+                        duration: 0
+                    });
+                    console.log(err); // TODO
                 });
+            },
+            omittedBytes(val) {
+                let chunk = this.getChunkByte();
+                return ((val / chunk >> 0) - 8) * chunk;
             }
-        }
+        },
     }
 </script>
 
