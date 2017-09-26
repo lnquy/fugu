@@ -113,7 +113,7 @@
                 }, err => {
                     this.$notify.error({
                         title: 'Error',
-                        message: "Failed to optimize struct:\n" + err.bodyText,
+                        message: "Failed to optimize struct.\n" + err.bodyText,
                         duration: 0
                     });
                 });

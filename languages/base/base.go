@@ -3,6 +3,7 @@ package base
 import (
 	"fmt"
 	"github.com/lnquy/fugu/modules/global"
+	"github.com/prometheus/common/log"
 )
 
 type (
@@ -41,12 +42,29 @@ func (s *Struct) CalcInfoTotals() {
 
 func (s *Struct) CalcOptimizable(arch global.Architecture) {
 	s.CalcInfoTotals()
-
-	if s.TotalPadding >= arch.GetChunkSize() {
-		s.Optimizable = true
+	chunk := arch.GetChunkSize()
+	if s.TotalPadding < chunk {
+		s.Optimizable = false
 		return
 	}
-	s.Optimizable = false
+	s.Optimizable = s.checkPossibleAdd(chunk)
+}
+
+func (s *Struct) checkPossibleAdd(chunk uint) bool {
+	lf := len(s.Fields)
+	for i := 0; i < lf-2; i++ {
+		for j := lf - 1; j > i; j-- {
+			if (s.Fields[i].Padding != 0 && s.Fields[j].Padding != 0) &&
+				(s.Fields[i].Padding+s.Fields[j].Padding <= chunk) &&
+				((s.Fields[i].Size < chunk && s.Fields[j].Size < chunk) ||
+					(s.Fields[i].Size > chunk && s.Fields[j].Size < chunk) ||
+					(s.Fields[i].Size < chunk && s.Fields[j].Size > chunk)) {
+				log.Info(s.Fields[i], s.Fields[j])
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (s *Struct) BuildText() {
@@ -56,12 +74,6 @@ func (s *Struct) BuildText() {
 	}
 	s.Text += "}"
 }
-
-type BySize []*Field
-
-func (a BySize) Len() int           { return len(a) }
-func (a BySize) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a BySize) Less(i, j int) bool { return a[i].Size > a[j].Size }
 
 type ByPadding []*Field
 

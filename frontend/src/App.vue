@@ -18,8 +18,8 @@
                     <el-form-item label="Language">
                         <el-select v-model="fuguForm.language" placeholder="Choose programming language">
                             <el-option label="Go" value="go"></el-option>
-                            <el-option label="C/C++" value="c/c++"></el-option>
-                            <el-option label="Java" value="java"></el-option>
+                            <el-option label="C/C++" value="c/c++" disabled></el-option>
+                            <el-option label="Java" value="java" disabled></el-option>
                         </el-select>
                     </el-form-item>
                     <el-form-item label="Architecture">
@@ -101,7 +101,7 @@
                 }, err => {
                     this.$notify.error({
                         title: 'Error',
-                        message: "Failed to calculate struct memory:\n" + err.bodyText,
+                        message: "Failed to calculate struct memory.\n" + err.bodyText,
                         duration: 0
                     });
                 });

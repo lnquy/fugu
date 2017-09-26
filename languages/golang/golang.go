@@ -5,7 +5,6 @@ import (
 	"github.com/lnquy/fugu/languages/base"
 	"github.com/lnquy/fugu/modules/global"
 	"reflect"
-	"sort"
 )
 
 type Golang struct{}
@@ -29,43 +28,6 @@ func (g *Golang) CalculateSizeof(data string, arch global.Architecture) (string,
 }
 
 func (g *Golang) OptimizeMemoryAlignment(s *base.Struct, arch global.Architecture) (string, error) {
-	return g.OptimizeMemoryAlignment2(s, arch)
-
-	//os := &base.Struct{
-	//	Name: s.Name,
-	//}
-	//chunk := arch.GetChunkSize()
-	//optm := make([]*base.Field, 0)
-	//
-	//for _, f := range s.Fields {
-	//	if f.Size%chunk == 0 && f.Size >= chunk {
-	//		os.Fields = append(os.Fields, f)
-	//		continue
-	//	}
-	//
-	//	f.Index = 0
-	//	f.Padding = chunk - f.Size%chunk
-	//	if f.Size == 0 {
-	//		f.Padding = 0
-	//	}
-	//	optm = append(optm, f)
-	//}
-	//
-	//// TODO: Not solve the special case when (size > chunk && size % chunk != 0) yet!
-	//sort.Sort(base.BySize(optm))
-	//os.Fields = append(os.Fields, optm...)
-	//calcPadding(os, arch)
-	//os.CalcOptimizable(arch)
-	//os.BuildText()
-	//
-	//b, err := json.Marshal(os)
-	//if err != nil {
-	//	return "", err
-	//}
-	//return string(b), nil
-}
-
-func (g *Golang) OptimizeMemoryAlignment2(s *base.Struct, arch global.Architecture) (string, error) {
 	os := &base.Struct{
 		Name:   s.Name,
 		Fields: make([]*base.Field, 0),
@@ -93,12 +55,14 @@ func (g *Golang) OptimizeMemoryAlignment2(s *base.Struct, arch global.Architectu
 		grp1 = append(grp1, f)
 	}
 
-	sort.Sort(base.ByPadding(grp1))
-	sort.Sort(base.ByPadding(grp2))
+	//sort.Sort(base.ByPadding(grp1))
+	//sort.Sort(base.ByPadding(grp2))
+	sortByLastBits(grp1, chunk)
+	sortByLastBits(grp2, chunk)
 
 	for {
 		ss, ok := make([]*base.Field, 0), false
-		grp2, ss, ok = subsetSum(grp2, int(chunk))
+		grp2, ss, ok = subsetSum(grp2, int(chunk), int(chunk))
 		if !ok {
 			break
 		}
@@ -109,7 +73,7 @@ func (g *Golang) OptimizeMemoryAlignment2(s *base.Struct, arch global.Architectu
 
 	for i := range grp1 {
 		ss, ok := make([]*base.Field, 0), false
-		grp2, ss, ok = subsetSum(grp2, int(chunk - grp1[i].Padding))
+		grp2, ss, ok = subsetSum(grp2, int(grp1[i].Padding), int(chunk))
 		if !ok {
 			os.Fields = append(os.Fields, grp1[i])
 			continue
@@ -135,7 +99,7 @@ func (g *Golang) OptimizeMemoryAlignment2(s *base.Struct, arch global.Architectu
 	return string(b), nil
 }
 
-func subsetSum(set []*base.Field, sum int) ([]*base.Field, []*base.Field, bool) {
+func subsetSum(set []*base.Field, sum, chunk int) ([]*base.Field, []*base.Field, bool) {
 	lset := len(set)
 	mat := make([][]bool, lset+1)
 	// Fill base 0 column
@@ -144,28 +108,14 @@ func subsetSum(set []*base.Field, sum int) ([]*base.Field, []*base.Field, bool) 
 		mat[i][0] = true
 	}
 
-	// Traverse the matrix and fill up values
-	//for j := 0; j <= sum; j++ { // Special case for first row
-	//	if int(set[0].Padding) >= j {
-	//		mat[0][j] = true
-	//		continue
-	//	}
-	//	mat[0][j] = false
-	//}
-
 	// From row 1 to lset-1
 	for i := 1; i <= lset; i++ {
-		//if i == lset { // Special case for last row. TODO: May remove this
-		//	mat[i][sum] = mat[i-1][sum] || mat[i-1][sum - int(set[i-1].Padding)]
-		//	continue
-		//}
-
 		for j := 0; j <= sum; j++ { // Normal rows (1..lset-1)
-			if int(set[i-1].Padding) > j {
+			if int(set[i-1].Size)%chunk > j {
 				mat[i][j] = mat[i-1][j]
 				continue
 			}
-			mat[i][j] = mat[i-1][j] || mat[i-1][j-int(set[i-1].Padding)]
+			mat[i][j] = mat[i-1][j] || mat[i-1][j-int(int(set[i-1].Size)%chunk)]
 		}
 	}
 
@@ -179,7 +129,7 @@ func subsetSum(set []*base.Field, sum int) ([]*base.Field, []*base.Field, bool) 
 	//	if i == 0 {
 	//		fmt.Printf("0\t")
 	//	} else {
-	//		fmt.Printf("%v\t", set[i-1].Padding)
+	//		fmt.Printf("%v\t", int(set[i-1].Size)%chunk)
 	//	}
 	//	for j := 0; j <= sum; j++ {
 	//		fmt.Printf("%t\t", mat[i][j])
@@ -198,7 +148,7 @@ func subsetSum(set []*base.Field, sum int) ([]*base.Field, []*base.Field, bool) 
 			if mat[i][j] {
 				if !mat[i-1][j] {
 					ssIdx = append(ssIdx, i-1)
-					j = j - int(set[i-1].Padding)
+					j = j - int(int(set[i-1].Size)%chunk)
 					i -= 1
 					continue
 				}
@@ -222,6 +172,17 @@ func subsetSum(set []*base.Field, sum int) ([]*base.Field, []*base.Field, bool) 
 	}
 
 	return set, nil, false
+}
+
+func sortByLastBits(fields []*base.Field, chunk uint) {
+	lf := len(fields)
+	for i := 0; i < lf -2; i++ {
+		for j := lf -1; j > i; j-- {
+			if fields[i].Size%chunk > fields[j].Size/chunk {
+				fields[i], fields[j] = fields[j], fields[i]
+			}
+		}
+	}
 }
 
 func calcFieldSizes(s *base.Struct, arch global.Architecture) {
@@ -251,18 +212,21 @@ func calcPadding(s *base.Struct, arch global.Architecture) {
 		}
 		next := s.Fields[i+1]
 		if f.Index+f.Size+next.Size > chunk {
-			if f.Size > chunk && (f.Size % chunk + next.Size <= chunk) {
-				f.Padding = 0
-				next.Index = f.Size % chunk
-				continue
-			}
-			if f.Size < chunk {
+			if f.Size > chunk {
+				if lastBits+next.Size <= chunk {
+					f.Padding = 0
+					next.Index = lastBits
+					continue
+				}
 				f.Padding = chunk - lastBits - f.Index
 				next.Index = 0
+				continue
 			}
-		} else {
-			f.Padding = 0
-			next.Index = f.Index + f.Size
+			f.Padding = chunk - lastBits - f.Index
+			next.Index = 0
+			continue
 		}
+		f.Padding = 0
+		next.Index = f.Index + f.Size
 	}
 }
